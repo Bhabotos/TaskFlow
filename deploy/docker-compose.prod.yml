@@ -1,0 +1,40 @@
+# Production stack for EC2. Pulled from ECR, not built on the instance.
+# Deployed by .github/workflows/deploy.yml via scripts/deploy-ec2.sh.
+# TASKFLOW_IMAGE is supplied by /opt/taskflow/.env (written by the deploy script).
+name: taskflow
+
+services:
+  web:
+    image: ${TASKFLOW_IMAGE:?TASKFLOW_IMAGE must be set}
+    container_name: taskflow-web
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: sqlite:////data/tasks.db
+      TZ: ${TZ:-UTC}
+    volumes:
+      - task_data:/data          # SQLite lives here; survives image updates
+    expose:
+      - "5000"                   # reachable by Nginx only, never published on the host
+    mem_limit: 256m
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:5000/api/health', timeout=4)"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: taskflow-nginx
+    restart: unless-stopped
+    depends_on:
+      web:
+        condition: service_healthy
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    mem_limit: 64m
+
+volumes:
+  task_data:

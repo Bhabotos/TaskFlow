@@ -1,0 +1,42 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "EcrLogin",
+      "Effect": "Allow",
+      "Action": "ecr:GetAuthorizationToken",
+      "Resource": "*"
+    },
+    {
+      "Sid": "EcrPushAndDescribeTaskflowOnly",
+      "Effect": "Allow",
+      "Action": [
+        "ecr:DescribeImages",
+        "ecr:BatchCheckLayerAvailability",
+        "ecr:InitiateLayerUpload",
+        "ecr:UploadLayerPart",
+        "ecr:CompleteLayerUpload",
+        "ecr:PutImage"
+      ],
+      "Resource": "arn:aws:ecr:ap-south-1:790076599312:repository/taskflow"
+    },
+    {
+      "Sid": "SsmSendCommandToTaskflowInstanceOnly",
+      "Effect": "Allow",
+      "Action": "ssm:SendCommand",
+      "Resource": [
+        "arn:aws:ec2:ap-south-1:790076599312:instance/i-0b6e548ca3124bf55",
+        "arn:aws:ssm:ap-south-1::document/AWS-RunShellScript"
+      ]
+    },
+    {
+      "Sid": "SsmReadOnlyNoResourceLevelSupport",
+      "Effect": "Allow",
+      "Action": [
+        "ssm:DescribeInstanceInformation",
+        "ssm:GetCommandInvocation"
+      ],
+      "Resource": "*"
+    }
+  ]
+}

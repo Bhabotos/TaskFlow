@@ -37,7 +37,7 @@ jobs:
       - name: Smoke test container
         run: |
           docker run -d --name tm -p 5000:5000 mini-task-manager:ci
-          for i in $(seq 1 20); do
+          for _ in $(seq 1 20); do
             curl -fsS http://127.0.0.1:5000/api/health && exit 0
             sleep 1
           done
