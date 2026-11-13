@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TaskFlow – Mini Task Manager</title>
+  <link rel="icon" href="{{ url_for('static', filename='images/logo.svg') }}" type="image/svg+xml">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar" id="sidebar">
+      <a class="brand" href="#/dashboard">
+        <img src="{{ url_for('static', filename='images/logo.svg') }}" alt="" width="32" height="32">
+        <span>TaskFlow</span>
+      </a>
+      <nav class="nav" aria-label="Main">
+        <a href="#/dashboard" data-route="dashboard"><span data-icon="home"></span>Dashboard</a>
+        <a href="#/tasks" data-route="tasks"><span data-icon="check"></span>Tasks</a>
+        <a href="#/projects" data-route="projects"><span data-icon="folder"></span>Projects</a>
+        <a href="#/settings" data-route="settings"><span data-icon="gear"></span>Settings</a>
+      </nav>
+      <div class="sidebar-foot"><span class="dot"></span> <span id="health-label">Checking…</span></div>
+    </aside>
+    <div class="scrim" id="scrim"></div>
+
+    <div class="main">
+      <header class="topbar">
+        <button class="icon-btn menu-btn" id="menu-btn" aria-label="Open menu" data-icon="menu"></button>
+        <h1 id="page-title">Dashboard</h1>
+        <div class="top-actions">
+          <button class="btn btn-primary" id="add-task-btn"><span data-icon="plus"></span><span class="lbl">Add Task</span></button>
+        </div>
+      </header>
+      <main id="view" class="view" aria-live="polite"></main>
+    </div>
+  </div>
+
+  <dialog id="task-dialog">
+    <form id="task-form" novalidate>
+      <div class="dlg-head"><h2 id="task-dialog-title">New task</h2><button type="button" class="icon-btn" data-close aria-label="Close" data-icon="x"></button></div>
+      <label>Title *<input name="title" maxlength="120" required autocomplete="off"></label>
+      <label>Description<textarea name="description" rows="3" maxlength="2000"></textarea></label>
+      <div class="grid2">
+        <label>Priority
+          <select name="priority"><option value="low">Low</option><option value="medium" selected>Medium</option><option value="high">High</option></select>
+        </label>
+        <label>Status
+          <select name="status"><option value="pending">Pending</option><option value="in_progress">In Progress</option><option value="completed">Completed</option></select>
+        </label>
+        <label>Due date<input type="date" name="due_date"></label>
+        <label>Project<select name="project_id"></select></label>
+      </div>
+      <p class="form-error" id="task-error" role="alert"></p>
+      <div class="dlg-foot">
+        <button type="button" class="btn" data-close>Cancel</button>
+        <button type="submit" class="btn btn-primary">Save task</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="project-dialog">
+    <form id="project-form" novalidate>
+      <div class="dlg-head"><h2>New project</h2><button type="button" class="icon-btn" data-close aria-label="Close" data-icon="x"></button></div>
+      <label>Name *<input name="name" maxlength="80" required autocomplete="off"></label>
+      <label>Description<input name="description" maxlength="255" autocomplete="off"></label>
+      <label>Color<input type="color" name="color" value="#3b82f6"></label>
+      <p class="form-error" id="project-error" role="alert"></p>
+      <div class="dlg-foot">
+        <button type="button" class="btn" data-close>Cancel</button>
+        <button type="submit" class="btn btn-primary">Create project</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="confirm-dialog">
+    <form method="dialog">
+      <div class="dlg-head"><h2>Please confirm</h2></div>
+      <p id="confirm-text"></p>
+      <div class="dlg-foot">
+        <button class="btn" value="cancel">Cancel</button>
+        <button class="btn btn-danger" value="ok">Delete</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div class="toast" id="toast" role="status"></div>
+  <script src="{{ url_for('static', filename='js/app.js') }}" defer></script>
+</body>
+</html>
