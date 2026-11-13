@@ -47,6 +47,44 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # TEMPORARY diagnostic: remove once the OIDC role assumption is confirmed working.
+      - name: "[TEMP] Diagnose OIDC token claims"
+        run: |
+          set -euo pipefail
+          if [ -z "${ACTIONS_ID_TOKEN_REQUEST_URL:-}" ] || [ -z "${ACTIONS_ID_TOKEN_REQUEST_TOKEN:-}" ]; then
+            echo "::error::OIDC token request variables are missing. The job needs 'permissions: id-token: write'."
+            exit 1
+          fi
+          resp="$(curl -fsS -H "Authorization: Bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+            "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=sts.amazonaws.com")" \
+            || { echo "::error::Failed to request an OIDC token from GitHub."; exit 1; }
+          OIDC_JWT="$(printf '%s' "$resp" | python3 -c 'import json,sys; print(json.load(sys.stdin).get("value", ""))')"
+          [ -n "$OIDC_JWT" ] || { echo "::error::GitHub returned no OIDC token."; exit 1; }
+          export OIDC_JWT # passed to Python via the environment only; never echoed
+          python3 - <<'PY'
+          import base64, json, os, sys
+
+          payload = os.environ["OIDC_JWT"].split(".")[1]
+          claims = json.loads(base64.urlsafe_b64decode(payload + "=" * (-len(payload) % 4)))
+
+          for key in ("iss", "aud", "sub", "repository", "ref", "repository_owner"):
+              print(f"{key}: {claims.get(key)}")
+
+          aud = claims.get("aud")
+          aud_list = aud if isinstance(aud, list) else [aud]
+          checks = {
+              "iss": claims.get("iss") == "https://token.actions.githubusercontent.com",
+              "aud": "sts.amazonaws.com" in aud_list,
+              "sub": claims.get("sub") == "repo:Bhabotos/TaskFlow:ref:refs/heads/main",
+          }
+          bad = [k for k, ok in checks.items() if not ok]
+          for k in bad:
+              print(f"::error::OIDC claim '{k}' does not match what the IAM trust policy expects.")
+          if bad:
+              sys.exit(1)
+          print("All checked OIDC claims match the expected trust policy values.")
+          PY
+
       - name: Configure AWS credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v4
         with:
