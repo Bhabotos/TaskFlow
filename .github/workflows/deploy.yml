@@ -75,7 +75,7 @@ jobs:
           checks = {
               "iss": claims.get("iss") == "https://token.actions.githubusercontent.com",
               "aud": "sts.amazonaws.com" in aud_list,
-              "sub": claims.get("sub") == "repo:Bhabotos/TaskFlow:ref:refs/heads/main",
+              "sub": claims.get("sub") == "repo:Bhabotos@215818701/TaskFlow@1456241660:ref:refs/heads/main",
           }
           bad = [k for k, ok in checks.items() if not ok]
           for k in bad:
@@ -185,3 +185,4 @@ jobs:
             exit 1
           fi
           echo "Deployed ${IMAGE_TAG:0:12} to $EC2_INSTANCE_ID" | tee -a "$GITHUB_STEP_SUMMARY"
+
